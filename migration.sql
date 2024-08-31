@@ -1,0 +1,7 @@
+
+CREATE TABLE IF NOT EXISTS pastr_files (
+    id TEXT PRIMARY KEY NOT NULL,
+    file_content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
