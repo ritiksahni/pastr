@@ -1,6 +1,13 @@
 import { Hono } from 'hono'
+import { drizzle } from 'drizzle-orm/d1';
+import { pastr_files } from './db/schema';
 
-const app = new Hono()
+export type Env = {
+  DATABASE: D1Database;
+}
+
+const app = new Hono<{ Bindings: Env }>()
+
 
 app.get('/', (c) => {
   return c.text('Hello Hono!')
@@ -48,3 +55,11 @@ app.get('/get/:key', async (c) => {
 })
 
 export default app
+
+/**
+Drizzle ORM example
+
+const db = drizzle(c.env.DATABASE);
+const res = db.select().from(pastr_files).all();
+console.log(res);
+ */
