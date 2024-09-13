@@ -10,7 +10,8 @@
     "@libsql/client": "^0.10.0",
     "crypto": "^1.0.1",
     "drizzle-orm": "^0.33.0",
-    "hono": "^4.5.10"
+    "hono": "^4.5.10",
+    "tell-js": "^1.0.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240529.0",
