@@ -7,6 +7,7 @@ import Tell from 'tell-js';
 
 export type Env = {
   DATABASE: D1Database;
+  RATE_LIMITER: RateLimit;
   TELEGRAM_CHAT_ID: string;
   TELEGRAM_BOT_TOKEN: string;
 }
@@ -19,8 +20,16 @@ app.get('/', (c) => {
 
 app.post('/create', async (c) => {
   try {
+    
     const db = drizzle(c.env.DATABASE);
     const text = await c.req.text();
+
+    // Takes the first 20 characters of text as key and checks if the request is rate limited.
+    const { success } = await c.env.RATE_LIMITER.limit({ key: text.substring(0, 20).toString() })
+    if(!success) {
+      return c.json({ error: 'Rate limit exceeded.' }, 429);
+    }
+    // Rate limit check ends here.
 
     if(!text || text.length === 0) {
       return c.json({ error: 'No file provided.' }, 400);
@@ -55,6 +64,14 @@ app.get('/get/:key', async (c) => {
   try {
     const db = drizzle(c.env.DATABASE);
     const { key } = c.req.param() as { key: string };
+
+    // Takes the UUID in the parameter and checks if the request is rate limited.
+    const { success } = await c.env.RATE_LIMITER.limit({ key: key })
+    if(!success) {
+      return c.json({ error: 'Rate limit exceeded.' }, 429);
+    }
+    // Rate limit check ends here.
+
     const res = await db.select().from(pastr_files).where(eq(pastr_files.id, key));
   
     return c.text(res[0].file_content as string);
