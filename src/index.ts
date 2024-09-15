@@ -1,9 +1,9 @@
 import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1';
-import { pastr_files } from './db/schema';
 import { eq } from 'drizzle-orm';
 import Tell from 'tell-js'; 
 
+import { pastr_files } from './db/schema';
 
 export type Env = {
   DATABASE: D1Database;
@@ -23,6 +23,12 @@ app.post('/create', async (c) => {
     
     const db = drizzle(c.env.DATABASE);
     const text = await c.req.text();
+
+    // Check for non-printable characters
+    const isPlainText = /^[\x20-\x7E]*$/.test(text);
+    if (!isPlainText) {
+      return c.json({ error: 'Invalid content. Only plain text is allowed.' }, 400);
+    }
 
     // Takes the first 20 characters of text as key and checks if the request is rate limited.
     const { success } = await c.env.RATE_LIMITER.limit({ key: text.substring(0, 20).toString() })
