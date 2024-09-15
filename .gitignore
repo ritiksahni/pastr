@@ -35,3 +35,6 @@ lerna-debug.log*
 # Cloudflare Workers
 wrangler.toml
 .wrangler/
+
+# Development Scripts
+rate_limit_tester.py
