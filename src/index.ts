@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
+import { z } from 'zod';
 import Tell from 'tell-js'; 
 
 import { pastr_files } from './db/schema';
@@ -14,6 +15,11 @@ export type Env = {
 
 const app = new Hono<{ Bindings: Env }>()
 
+const paste_schema: z.ZodString = z.string({
+  invalid_type_error: 'Invalid type. Expected a string.',
+  description: 'The content of the paste.',
+});
+
 app.get('/', (c) => {
   return c.text('Ping check!')
 })
@@ -24,8 +30,17 @@ app.post('/create', async (c) => {
     const db = drizzle(c.env.DATABASE);
     const text = await c.req.text();
 
+    console.log(typeof text, "Text: ", text);
+
+    // Validate the text content.
+    const validate = paste_schema.safeParse(text);
+    if (!validate.success) {
+      return c.json({ error: validate.error.errors[0].message }, 400);
+    }
+
+
     // Check for non-printable characters
-    const isPlainText = /^[\x20-\x7E]*$/.test(text);
+    const isPlainText = /^[\x00-\x7F\s]*$/.test(text);
     if (!isPlainText) {
       return c.json({ error: 'Invalid content. Only plain text is allowed.' }, 400);
     }
